@@ -3,14 +3,17 @@ import { Polyline, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
 export interface RouteGeometry {
-    type: string;
-    coordinates: [number, number][]; // [lon, lat] from OSRM GeoJSON
+    type?: string;
+    coordinates?: [number, number][]; // [lon, lat] from OSRM GeoJSON
 }
 
 export interface RouteData {
-    geometry: RouteGeometry;
+    geometry: [number, number][] | RouteGeometry;
+    distance_km?: number | string;
+    duration_min?: number;
     distance: number; // meters
     duration: number; // seconds
+    label?: string;
     weight?: number;
     weight_name?: string;
     legs?: any[];
@@ -43,33 +46,48 @@ export function RouteLayer({ routeData }: RouteLayerProps) {
 
 
 
+    const ROUTE_COLORS = [
+        { main: "#2563eb", glow: "#3b82f6" }, // Blue (Main / Route 1)
+        { main: "#10b981", glow: "#34d399" }, // Emerald (Alt 1 / Highway-free)
+        { main: "#f59e0b", glow: "#fbbf24" }, // Amber (Alt 2 / Back roads)
+        { main: "#8b5cf6", glow: "#a78bfa" }, // Purple
+    ];
+
     return (
         <>
-
             {
                 routeData.map((route, index) => {
+                    const colorScheme = ROUTE_COLORS[index % ROUTE_COLORS.length];
+                    const latLngs: [number, number][] = Array.isArray(route.geometry)
+                        ? route.geometry
+                        : (route.geometry?.coordinates?.map(([lon, lat]) => [lat, lon]) ?? []);
 
-                    const latLngs: [number, number][] = route.geometry.coordinates.map(
-                        ([lon, lat]) => [lat, lon]
-                    );
                     const startPoint = latLngs[0];
                     const endPoint = latLngs[latLngs.length - 1];
 
-                    const distanceKm = (route.distance / 1000).toFixed(1);
-                    const durationMin = Math.round(route.duration / 60);
+                    const distanceKm =
+                        route.distance_km !== undefined
+                            ? typeof route.distance_km === "number"
+                                ? route.distance_km.toFixed(1)
+                                : String(route.distance_km)
+                            : (route.distance / 1000).toFixed(1);
+                    const durationMin =
+                        route.duration_min !== undefined
+                            ? Math.round(Number(route.duration_min))
+                            : Math.round(route.duration / 60);
 
                     return (
                         <div key={index}>
                             {/* Fit map viewport to show the entire route */}
-                            <AutoFitBounds positions={latLngs} />
+                            {index === 0 && <AutoFitBounds positions={latLngs} />}
 
                             {/* Glowing route outline / background */}
                             <Polyline
                                 positions={latLngs}
                                 pathOptions={{
-                                    color: "#ff0000ff",
-                                    weight: 8,
-                                    opacity: 0.4,
+                                    color: colorScheme.glow,
+                                    weight: index === 0 ? 8 : 6,
+                                    opacity: 0.35,
                                     lineCap: "round",
                                     lineJoin: "round",
                                 }}
@@ -79,13 +97,22 @@ export function RouteLayer({ routeData }: RouteLayerProps) {
                             <Polyline
                                 positions={latLngs}
                                 pathOptions={{
-                                    color: "#2563eb",
-                                    weight: 5,
+                                    color: colorScheme.main,
+                                    weight: index === 0 ? 5 : 4,
                                     opacity: 0.9,
                                     lineCap: "round",
                                     lineJoin: "round",
+                                    dashArray: index > 0 ? "8, 6" : undefined,
                                 }}
-                            />
+                            >
+                                <Popup>
+                                    <div className="text-xs space-y-1">
+                                        <strong className="block text-sm text-blue-600">{route.label || `Route ${index + 1}`}</strong>
+                                        <div>Distance: {distanceKm} km</div>
+                                        <div>Estimated time: {durationMin} mins</div>
+                                    </div>
+                                </Popup>
+                            </Polyline>
 
                             {/* Start point marker */}
                             {startPoint && (

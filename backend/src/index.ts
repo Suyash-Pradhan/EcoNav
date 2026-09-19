@@ -1,6 +1,8 @@
+import "dotenv/config";
 import type { Express } from "express";
-import express from "express"
-import ecoRoute from "./Routes/ecoRoute.js"
+import express from "express";
+import ecoRoute from "./Routes/ecoRoute.js";
+
 
 import cors from "cors";
 
