@@ -1,31 +1,31 @@
-import express from "express"
-import type { Express, Router, Request, Response } from "express"
-import console from "node:console";
+import express from "express";
+import type { Router, Request, Response } from "express";
+import { getDistinctRoutes, type Coordinate } from "../services/routeService.js";
 
 const route: Router = express.Router();
 
 route.post("/route", async (req: Request, res: Response) => {
     const cordinate = req.body.cordinate;
-    if (!cordinate) {
-        res.json({ error: "Cordinate are required" });
+    if (!cordinate || !Array.isArray(cordinate) || cordinate.length < 2) {
+        res.status(400).json({ error: "Coordinates are required: [[lat1, lon1], [lat2, lon2]]" });
         return;
     }
-    const c1 = cordinate[0]; // [lat, lon] from frontend
-    const c2 = cordinate[1]; // [lat, lon] from frontend
-    console.log(c1, c2, "backend");
+
+    const c1 = cordinate[0] as Coordinate; // [lat, lon]
+    const c2 = cordinate[1] as Coordinate; // [lat, lon]
+    const alternatesCount = typeof req.body.alternates === "number" ? req.body.alternates : 3;
 
     try {
-        // OSRM expects coordinates in {longitude},{latitude};{longitude},{latitude} format
-        const coords = `${c1[1]},${c1[0]};${c2[1]},${c2[0]}`;
-        const osrmUrl =`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=3`;;
-
-        const osrmResponse = await fetch(osrmUrl);
-        const data = await osrmResponse.json();
-        console.log(data, "data from osrm")
-        res.json({ status: "ok", data });
+        const routes = await getDistinctRoutes(c1, c2, alternatesCount);
+        res.json({
+            status: "ok",
+            data: { routes },
+            routes,
+        });
     } catch (error) {
-        console.error("OSRM route error:", error);
-        res.status(500).json({ error: "Failed to fetch route from OSRM" });
+        console.error("Route calculation error:", error);
+        res.status(500).json({ error: "Failed to fetch routes" });
     }
-})
+});
+
 export default route;

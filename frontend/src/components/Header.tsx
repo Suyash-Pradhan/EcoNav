@@ -73,7 +73,7 @@ function Header({ onRouteCalculated }: HeaderProps) {
             });
 
             const data = await response.json();
-            console.log("Response from /route:", data);
+            // console.log("Response from /route:", data);
 
             if (data?.data?.routes && data.data.routes.length > 0) {
                 onRouteCalculated?.(data.data.routes);
