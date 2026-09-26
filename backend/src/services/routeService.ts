@@ -67,6 +67,7 @@ interface RouteConfig {
 }
 
 const STADIA_API_URL = "https://api.stadiamaps.com/route/v1";
+const DEFAULT_TIMEOUT_MS = 10000;
 
 const FALLBACK_CONFIGS: RouteConfig[] = [
     {
@@ -105,7 +106,8 @@ const FALLBACK_CONFIGS: RouteConfig[] = [
 async function fetchStadiaRoute(
     origin: Coordinate,
     destination: Coordinate,
-    config: RouteConfig
+    config: RouteConfig,
+    signal?: AbortSignal
 ): Promise<FormattedRoute> {
     const apiKey = process.env.STADIA_API_KEY;
     if (!apiKey) {
@@ -131,6 +133,7 @@ async function fetchStadiaRoute(
             "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
+        signal: signal ?? null,
     });
 
     if (!response.ok) {
@@ -159,24 +162,68 @@ async function fetchStadiaRoute(
     };
 }
 
+function isSameGeometry(geomA: Coordinate[], geomB: Coordinate[]): boolean {
+    if (geomA.length !== geomB.length) return false;
+    for (let i = 0; i < geomA.length; i++) {
+        const [latA, lonA] = geomA[i]!;
+        const [latB, lonB] = geomB[i]!;
+        if (Math.abs(latA - latB) > 1e-6 || Math.abs(lonA - lonB) > 1e-6) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function formatRouteFromLeg(
+    label: string,
+    leg?: {
+        shape?: string;
+        summary?: { length?: number; time?: number };
+    }
+): FormattedRoute | null {
+    if (!leg?.shape || !leg?.summary) return null;
+    const lengthKm = leg.summary.length ?? 0;
+    const timeSec = leg.summary.time ?? 0;
+    const geometry = polyline.decode(leg.shape, 6) as Coordinate[];
+
+    return {
+        label,
+        geometry,
+        distance_km: lengthKm.toFixed(1),
+        duration_min: Math.round(timeSec / 60),
+        distance: Math.round(lengthKm * 1000),
+        duration: Math.round(timeSec),
+    };
+}
+
 /**
  * Fallback approach: Fetches multiple distinct routes using different costing options
  * (Fastest, Highway-free, Back roads) via parallel Promise.allSettled calls.
  */
 async function fetchFallbackDistinctRoutes(
     origin: Coordinate,
-    destination: Coordinate
+    destination: Coordinate,
+    signal?: AbortSignal
 ): Promise<FormattedRoute[]> {
     console.log("[routeService] Falling back to multi-profile costing options (Fastest, Highway-free, Back roads)...");
+    const fallbackSignal = signal ?? AbortSignal.timeout(DEFAULT_TIMEOUT_MS);
     const results = await Promise.allSettled(
-        FALLBACK_CONFIGS.map((config) => fetchStadiaRoute(origin, destination, config))
+        FALLBACK_CONFIGS.map((config) => fetchStadiaRoute(origin, destination, config, fallbackSignal))
     );
 
     const successfulRoutes: FormattedRoute[] = [];
     results.forEach((res, index) => {
         const label = FALLBACK_CONFIGS[index]?.label ?? `Route ${index + 1}`;
         if (res.status === "fulfilled") {
-            successfulRoutes.push(res.value);
+            const route = res.value;
+            const isDuplicate = successfulRoutes.some((existing) =>
+                isSameGeometry(existing.geometry, route.geometry)
+            );
+            if (!isDuplicate) {
+                successfulRoutes.push(route);
+            } else {
+                console.log(`[routeService] Skipping fallback route "${label}" because its geometry is identical to an existing route.`);
+            }
         } else {
             console.error(`Fallback call failed for "${label}":`, res.reason);
         }
@@ -197,12 +244,15 @@ async function fetchFallbackDistinctRoutes(
 export async function getDistinctRoutes(
     origin: Coordinate,
     destination: Coordinate,
-    alternatesCount: number = 3
+    alternatesCount: number = 3,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<FormattedRoute[]> {
     const apiKey = process.env.STADIA_API_KEY;
     if (!apiKey) {
         throw new Error("STADIA_API_KEY is not set in environment variables");
     }
+
+    const signal = AbortSignal.timeout(timeoutMs);
 
     const requestBody: Record<string, unknown> = {
         locations: [
@@ -222,6 +272,7 @@ export async function getDistinctRoutes(
             "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
+        signal,
     });
 
     if (!response.ok) {
@@ -236,29 +287,39 @@ export async function getDistinctRoutes(
         alternatesCount: receivedAlternatesCount,
     });
 
-    // fallback if alternates not found
+    // Format the valid primary trip from the response if available
+    const primaryRoute = formatRouteFromLeg("Main Route", data.trip?.legs?.[0]);
+
+    // If alternates parameter produced 0 alternate routes, supplement with fallback routes
     if (receivedAlternatesCount === 0) {
-        return await fetchFallbackDistinctRoutes(origin, destination);
+        try {
+            const fallbackRoutes = await fetchFallbackDistinctRoutes(origin, destination);
+            if (primaryRoute) {
+                // Keep primaryRoute first, then append only geometrically unique fallback routes
+                const combinedRoutes: FormattedRoute[] = [primaryRoute];
+                for (const fb of fallbackRoutes) {
+                    if (!combinedRoutes.some((r) => isSameGeometry(r.geometry, fb.geometry))) {
+                        combinedRoutes.push(fb);
+                    }
+                }
+                return combinedRoutes;
+            }
+            return fallbackRoutes;
+        } catch (fallbackError) {
+            console.warn("[routeService] Fallback retrieval failed:", fallbackError);
+            if (primaryRoute) {
+                console.log("[routeService] Retaining valid primary route despite fallback failure.");
+                return [primaryRoute];
+            }
+            throw fallbackError;
+        }
     }
 
     const routes: FormattedRoute[] = [];
 
-
     // 1. Process main trip (Primary route)
-    const primaryLeg = data.trip?.legs?.[0];
-    if (primaryLeg?.shape && primaryLeg?.summary) {
-        const lengthKm = primaryLeg.summary.length ?? 0;
-        const timeSec = primaryLeg.summary.time ?? 0;
-        const geometry = polyline.decode(primaryLeg.shape, 6) as Coordinate[];
-
-        routes.push({
-            label: "Main Route",
-            geometry,
-            distance_km: lengthKm.toFixed(1),
-            duration_min: Math.round(timeSec / 60),
-            distance: Math.round(lengthKm * 1000),
-            duration: Math.round(timeSec),
-        });
+    if (primaryRoute) {
+        routes.push(primaryRoute);
     }
 
     // 2. Process alternate trips
