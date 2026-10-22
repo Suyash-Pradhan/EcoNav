@@ -1,0 +1,247 @@
+{
+  "saved_routes": [
+    {
+      "id": 1,
+      "name": "Delhi to Noida Daily Commute",
+      "origin_name": "Connaught Place, New Delhi",
+      "destination_name": "Sector 62, Noida",
+      "origin_lat": 28.6315,
+      "origin_lon": 77.2167,
+      "destination_lat": 28.628,
+      "destination_lon": 77.3649,
+      "alert_threshold": 120,
+      "notify_email": "testuser@example.com",
+      "notify_in_app": true,
+      "last_aqi": 161,
+      "lowest_recorded_aqi": 145,
+      "last_checked_at": "2026-10-12T18:30:01.708Z",
+      "last_notified_at": null,
+      "is_active": true,
+      "created_at": "2026-10-12T16:26:48.981Z"
+    },
+    {
+      "id": 2,
+      "name": "South Delhi Clean Window Watch",
+      "origin_name": "Hauz Khas",
+      "destination_name": "Saket",
+      "origin_lat": 28.5494,
+      "origin_lon": 77.2001,
+      "destination_lat": 28.5244,
+      "destination_lon": 77.2167,
+      "alert_threshold": 200,
+      "notify_email": "commuter@example.com",
+      "notify_in_app": true,
+      "last_aqi": 156,
+      "lowest_recorded_aqi": 155,
+      "last_checked_at": "2026-10-12T18:30:03.061Z",
+      "last_notified_at": "2026-10-12T16:27:12.483Z",
+      "is_active": true,
+      "created_at": "2026-10-12T16:27:04.437Z"
+    }
+  ],
+  "route_check_logs": [
+    {
+      "id": 1,
+      "route_id": 1,
+      "aqi": 145,
+      "exposure_score": "{\"message\":\"Initial route saved\"}",
+      "created_at": "2026-10-12T16:26:49.006Z"
+    },
+    {
+      "id": 2,
+      "route_id": 1,
+      "aqi": 155,
+      "exposure_score": 2945,
+      "status": "{\"previousAqi\":145,\"currentAqi\":155,\"threshold\":120}",
+      "created_at": "2026-10-12T16:26:50.806Z"
+    },
+    {
+      "id": 3,
+      "route_id": 2,
+      "aqi": 220,
+      "exposure_score": "{\"message\":\"Initial route saved\"}",
+      "created_at": "2026-10-12T16:27:04.447Z"
+    },
+    {
+      "id": 4,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"reason\":\"AQI dropped below your alert threshold of 200 (now at 155)\",\"previousAqi\":220,\"currentAqi\":155}",
+      "created_at": "2026-10-12T16:27:12.506Z"
+    },
+    {
+      "id": 5,
+      "route_id": 1,
+      "aqi": 155,
+      "exposure_score": 2945,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":120}",
+      "created_at": "2026-10-12T16:30:00.745Z"
+    },
+    {
+      "id": 6,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T16:30:01.590Z"
+    },
+    {
+      "id": 7,
+      "route_id": 1,
+      "aqi": 155,
+      "exposure_score": 2945,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":120}",
+      "created_at": "2026-10-12T16:45:00.722Z"
+    },
+    {
+      "id": 8,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T16:45:01.514Z"
+    },
+    {
+      "id": 9,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":155,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T17:00:01.554Z"
+    },
+    {
+      "id": 10,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T17:00:02.643Z"
+    },
+    {
+      "id": 11,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":159,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T17:15:00.579Z"
+    },
+    {
+      "id": 12,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T17:15:01.329Z"
+    },
+    {
+      "id": 13,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":159,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T17:30:00.776Z"
+    },
+    {
+      "id": 14,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T17:30:01.913Z"
+    },
+    {
+      "id": 15,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":159,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T17:45:01.696Z"
+    },
+    {
+      "id": 16,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T17:45:02.838Z"
+    },
+    {
+      "id": 17,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":159,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T18:00:00.683Z"
+    },
+    {
+      "id": 18,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T18:00:01.878Z"
+    },
+    {
+      "id": 19,
+      "route_id": 1,
+      "aqi": 159,
+      "exposure_score": 3021,
+      "status": "{\"previousAqi\":159,\"currentAqi\":159,\"threshold\":120}",
+      "created_at": "2026-10-12T18:15:00.736Z"
+    },
+    {
+      "id": 20,
+      "route_id": 2,
+      "aqi": 155,
+      "exposure_score": 1240,
+      "status": "{\"previousAqi\":155,\"currentAqi\":155,\"threshold\":200}",
+      "created_at": "2026-10-12T18:15:01.510Z"
+    },
+    {
+      "id": 21,
+      "route_id": 1,
+      "aqi": 161,
+      "exposure_score": 3059,
+      "status": "{\"previousAqi\":159,\"currentAqi\":161,\"threshold\":120}",
+      "created_at": "2026-10-12T18:30:01.753Z"
+    },
+    {
+      "id": 22,
+      "route_id": 2,
+      "aqi": 156,
+      "exposure_score": 1248,
+      "status": "{\"previousAqi\":155,\"currentAqi\":156,\"threshold\":200}",
+      "created_at": "2026-10-12T18:30:03.095Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "route_id": 2,
+      "route_name": "South Delhi Clean Window Watch",
+      "title": "🌱 Clean Air Alert: South Delhi Clean Window Watch",
+      "message": "Great news! Pollution dropped from AQI 220 to 155 (improved by 65 pts). Recommended time to commute between Hauz Khas and Saket.",
+      "aqi": 155,
+      "channel": "IN_APP",
+      "is_read": false,
+      "created_at": "2026-10-12T16:27:06.840Z"
+    },
+    {
+      "id": 2,
+      "route_id": 2,
+      "route_name": "South Delhi Clean Window Watch",
+      "title": "🌱 Clean Air Alert: South Delhi Clean Window Watch",
+      "message": "Sent to commuter@example.com: Great news! Pollution dropped from AQI 220 to 155 (improved by 65 pts). Recommended time to commute between Hauz Khas and Saket.",
+      "aqi": 155,
+      "channel": "EMAIL",
+      "is_read": false,
+      "created_at": "2026-10-12T16:27:12.459Z"
+    }
+  ],
+  "nextIds": {
+    "saved_routes": 3,
+    "route_check_logs": 23,
+    "notifications": 3
+  }
+}

@@ -1,6 +1,7 @@
 import express from "express";
 import type { Router, Request, Response } from "express";
 import { getDistinctRoutes, type Coordinate } from "../services/routeService.js";
+import { getRouteWithAqi } from "../services/routeAqiScore.js";
 
 const route: Router = express.Router();
 
@@ -52,7 +53,11 @@ route.post("/route", async (req: Request, res: Response) => {
     }
 
     try {
-        const routes = await getDistinctRoutes(c1, c2, alternatesCount);
+        const rawRoutes = await getDistinctRoutes(c1, c2, alternatesCount);
+        const routes = await Promise.all(
+            rawRoutes.map((r) => getRouteWithAqi(r))
+        );
+
         res.json({
             status: "ok",
             data: { routes },
